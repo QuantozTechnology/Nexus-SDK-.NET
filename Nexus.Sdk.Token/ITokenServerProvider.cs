@@ -181,6 +181,7 @@ namespace Nexus.Sdk.Token
         /// <param name="senderPublicKey"></param>
         /// <param name="receiverPublicKey"></param>
         /// <param name="tokenCode"></param>
+        /// <param name="blockchainTransactionId"></param>
         /// <param name="amount"></param>
         /// <param name="memo"></param>
         /// <param name="message"></param>
@@ -188,7 +189,7 @@ namespace Nexus.Sdk.Token
         /// <param name="callbackUrl"></param>
         /// <param name="customerIPAddress">Optional IP address of the customer used for tracing their actions</param>
         /// <returns></returns>
-        Task<SignablePaymentResponse> CreatePaymentAsync(string senderPublicKey, string receiverPublicKey, string tokenCode, decimal amount, string? memo = null, string? message = null, string? cryptoCode = null, string? callbackUrl = null, string? customerIPAddress = null);
+        Task<SignablePaymentResponse> CreatePaymentAsync(string senderPublicKey, string receiverPublicKey, string tokenCode, string? blockchainTransactionId, decimal? amount, string? memo = null, string? message = null, string? cryptoCode = null, string? callbackUrl = null, string? customerIPAddress = null);
 
         /// <summary>
         ///

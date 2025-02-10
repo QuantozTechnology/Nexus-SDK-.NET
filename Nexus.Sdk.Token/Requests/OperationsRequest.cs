@@ -80,14 +80,18 @@ public record PaymentDefinition
     [JsonPropertyName("tokenCode")]
     public string TokenCode { get; set; }
 
-    [JsonPropertyName("amount")]
-    public decimal Amount { get; set; }
+    [JsonPropertyName("blockchainTransactionId")]
+    public string? BlockchainTransactionId { get; set; }
 
-    public PaymentDefinition(string senderPublicKey, string receiverPublicKey, string tokenCode, decimal amount)
+    [JsonPropertyName("amount")]
+    public decimal? Amount { get; set; }
+
+    public PaymentDefinition(string senderPublicKey, string receiverPublicKey, string tokenCode, string? blockchainTransactionId = null, decimal? amount = null)
     {
         SenderPublicKey = senderPublicKey;
         ReceiverPublicKey = receiverPublicKey;
         TokenCode = tokenCode;
+        BlockchainTransactionId = blockchainTransactionId;
         Amount = amount;
     }
 }

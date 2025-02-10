@@ -342,9 +342,9 @@ namespace Nexus.Sdk.Token
         /// <param name="message"></param>
         /// <param name="customerIPAddress">Optional IP address of the customer used for tracing their actions</param>
         /// <returns></returns>
-        public async Task<SignablePaymentResponse> CreatePaymentAsync(string senderPublicKey, string receiverPublicKey, string tokenCode, decimal amount, string? memo = null, string? message = null, string? cryptoCode = null, string? callbackUrl = null, string? customerIPAddress = null)
+        public async Task<SignablePaymentResponse> CreatePaymentAsync(string senderPublicKey, string receiverPublicKey, string tokenCode, string? blockchainTransactionId = null, decimal? amount = null, string? memo = null, string? message = null, string? cryptoCode = null, string? callbackUrl = null, string? customerIPAddress = null)
         {
-            var definition = new PaymentDefinition(senderPublicKey, receiverPublicKey, tokenCode, amount);
+            var definition = new PaymentDefinition(senderPublicKey, receiverPublicKey, tokenCode, blockchainTransactionId, amount);
             return await CreatePaymentsAsync([definition], memo, message, cryptoCode, callbackUrl, customerIPAddress);
         }
 
