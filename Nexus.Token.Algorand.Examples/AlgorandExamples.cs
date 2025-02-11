@@ -27,6 +27,7 @@ namespace Nexus.Token.Algorand.Examples
 
         public async Task<string> CreateAccountAsync(string customerCode)
         {
+            
             var request = new CreateCustomerRequestBuilder(customerCode, "Trusted", "EUR")
                 .Build();
 
@@ -43,6 +44,9 @@ namespace Nexus.Token.Algorand.Examples
             await _tokenServer.Accounts.CreateOnAlgorandAsync(customer.CustomerCode, senderKeyPair.GetPublicKey());
 
             _logger.LogWarning("Customer and account successfully created");
+
+            
+    
 
             return senderKeyPair.GetPrivateKey(_encrypter);
         }
@@ -173,9 +177,30 @@ namespace Nexus.Token.Algorand.Examples
             }
 
             {
-                var signableResponse = await _tokenServer.Operations.CreatePaymentAsync(sender.GetPublicKey(), receiver.GetPublicKey(), tokenCode, amount, "memo", "message", "ALGO");
-                var signedResponse = sender.Sign(signableResponse);
-                await _tokenServer.Submit.OnAlgorandAsync(signedResponse);
+
+                //var res = await _tokenServer.Tokens.GetTokenBalances("EURD");
+                //var senderKey = "DU52Z7TPIPD7DMW5AN7A2MTBZSNSDHRVFXFRL2US73P65OFCKMX26HDOLY";
+                //senderKey = "GHJHDJPWCAUUNNLLJ447FFK6HQAY3IYEF3TRH4TLF77BVQTQFFDNPHXS6M";
+                //var receiverKey = "S3JA4FGUNT6G7BHMR4NF3XP5M55G7RRYI2XUCKIOWCDTY3ZPEZVKIMZZ4I";
+                //receiverKey = "JOYG4OLKLD4ADHEDRDQYGWBU5QI5N5ROFLAGPW6O2ZDZG24N56C7DBYPFM";
+
+                //var tokenCode = "EURD";
+                //var amount = 5.00M;
+                //var txId = "DQHZWDWLZPELZW7Z3MCO6WQRBBGSXOOCLYWEGQMWBSTTVFPO3REA";
+                //txId = "SKUBJAKR3AUNYD3GQZ46KFKWOKOH6Y5UETTMLWKBWVPMLWJTKRQQ";
+                var txId = "QHVFBIL4TJDXIJ3PTMPJ3RDGAIXFIAGJGXKOZVCH34KUKRZBG2UA";
+                try
+                {
+                    //var res = await _tokenServer.Operations.CreatePaymentAsync(sender.GetPublicKey(), receiver.GetPublicKey(), tokenCode, null, amount);
+                    var signableResponse = await _tokenServer.Operations.CreatePaymentAsync(sender.GetPublicKey(), receiver.GetPublicKey(), tokenCode, "", amount, "memo", "message", "ALGO");
+                    var signedResponse = sender.Sign(signableResponse);
+                    await _tokenServer.Submit.OnAlgorandAsync(signedResponse);
+                }
+                catch (System.Exception ex)
+                {
+                    _logger.LogError(ex, "Error creating payment");
+                }
+                
             }
 
             _logger.LogWarning("Payment successful!");
