@@ -337,6 +337,7 @@ namespace Nexus.Sdk.Token
         /// <param name="senderPublicKey"></param>
         /// <param name="receiverPublicKey"></param>
         /// <param name="tokenCode"></param>
+        /// <param name="blockchainTransactionId"></param>
         /// <param name="amount"></param>
         /// <param name="memo"></param>
         /// <param name="message"></param>
