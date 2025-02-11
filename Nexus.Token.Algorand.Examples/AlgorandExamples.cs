@@ -27,11 +27,10 @@ namespace Nexus.Token.Algorand.Examples
 
         public async Task<string> CreateAccountAsync(string customerCode)
         {
-            
             var request = new CreateCustomerRequestBuilder(customerCode, "Trusted", "EUR")
                 .Build();
 
-            string customerIPAddress = "127.1.0.0";
+            string customerIPAddress = null;
 
             var customer = await _tokenServer.Customers.Create(request, customerIPAddress);
 
@@ -44,9 +43,6 @@ namespace Nexus.Token.Algorand.Examples
             await _tokenServer.Accounts.CreateOnAlgorandAsync(customer.CustomerCode, senderKeyPair.GetPublicKey());
 
             _logger.LogWarning("Customer and account successfully created");
-
-            
-    
 
             return senderKeyPair.GetPrivateKey(_encrypter);
         }
@@ -127,8 +123,23 @@ namespace Nexus.Token.Algorand.Examples
                 _logger.LogWarning("Account is not connected to the token, so we need to connect it first");
 
                 var signableResponse = await _tokenServer.Accounts.ConnectToTokenAsync(kp.GetAccountCode(), tokenCode);
-                var signedResponse = kp.Sign(signableResponse);
-                await _tokenServer.Submit.OnAlgorandAsync(signedResponse);
+                var signedResponse = kp.Sign(signableResponse, true);
+                await _tokenServer.Submit.OnAlgorandAsync(signedResponse, false);
+
+                _logger.LogInformation("Successfully submitted the Account Connect request.");
+                _logger.LogInformation("Waiting for completion...");
+
+                // wait to be connected
+                var result = await _tokenServer.Submit.WaitForCompletionAsync(signableResponse.BlockchainResponse.Code);
+
+                if (result)
+                {
+                    _logger.LogInformation("Account successfully opted in");
+                }
+                else
+                {
+                    _logger.LogWarning("Account failed to opt in");
+                }
             }
 
             await _tokenServer.Operations.CreateFundingAsync(kp.GetAccountCode(), tokenCode, amount);
@@ -141,7 +152,7 @@ namespace Nexus.Token.Algorand.Examples
 
             var tokenCodes = fundings.Select(kv => kv.Key);
             var signableResponse = await _tokenServer.Accounts.ConnectToTokensAsync(kp.GetAccountCode(), tokenCodes);
-            var signedResponse = kp.Sign(signableResponse);
+            var signedResponse = kp.Sign(signableResponse, true);
             await _tokenServer.Submit.OnAlgorandAsync(signedResponse);
 
             var definitions = fundings.Select(kv => new FundingDefinition(kv.Key, kv.Value, null));
@@ -155,7 +166,7 @@ namespace Nexus.Token.Algorand.Examples
             var keypair = AlgorandKeyPair.FromPrivateKey(encryptedPrivateKey, _decrypter);
 
             var signableResponse = await _tokenServer.Accounts.ConnectToTokensAsync(keypair.GetAccountCode(), tokenCodes);
-            var signedResponse = keypair.Sign(signableResponse);
+            var signedResponse = keypair.Sign(signableResponse, true);
 
             _ = _tokenServer.Submit.OnAlgorandAsync(signedResponse);
         }
@@ -172,35 +183,26 @@ namespace Nexus.Token.Algorand.Examples
                 _logger.LogWarning("Receiver account is not connected to the token, so we need to connect it first");
 
                 var signableResponse = await _tokenServer.Accounts.ConnectToTokenAsync(receiver.GetAccountCode(), tokenCode);
-                var signedResponse = receiver.Sign(signableResponse);
+                var signedResponse = receiver.Sign(signableResponse, true);
                 await _tokenServer.Submit.OnAlgorandAsync(signedResponse);
+
+                // wait to be connected
+                var result = await _tokenServer.Submit.WaitForCompletionAsync(signableResponse.BlockchainResponse.Code);
+
+                if (result)
+                {
+                    _logger.LogInformation("Account successfully opted in");
+                }
+                else
+                {
+                    _logger.LogWarning("Account failed to opt in");
+                }
             }
 
             {
-
-                //var res = await _tokenServer.Tokens.GetTokenBalances("EURD");
-                //var senderKey = "DU52Z7TPIPD7DMW5AN7A2MTBZSNSDHRVFXFRL2US73P65OFCKMX26HDOLY";
-                //senderKey = "GHJHDJPWCAUUNNLLJ447FFK6HQAY3IYEF3TRH4TLF77BVQTQFFDNPHXS6M";
-                //var receiverKey = "S3JA4FGUNT6G7BHMR4NF3XP5M55G7RRYI2XUCKIOWCDTY3ZPEZVKIMZZ4I";
-                //receiverKey = "JOYG4OLKLD4ADHEDRDQYGWBU5QI5N5ROFLAGPW6O2ZDZG24N56C7DBYPFM";
-
-                //var tokenCode = "EURD";
-                //var amount = 5.00M;
-                //var txId = "DQHZWDWLZPELZW7Z3MCO6WQRBBGSXOOCLYWEGQMWBSTTVFPO3REA";
-                //txId = "SKUBJAKR3AUNYD3GQZ46KFKWOKOH6Y5UETTMLWKBWVPMLWJTKRQQ";
-                var txId = "QHVFBIL4TJDXIJ3PTMPJ3RDGAIXFIAGJGXKOZVCH34KUKRZBG2UA";
-                try
-                {
-                    //var res = await _tokenServer.Operations.CreatePaymentAsync(sender.GetPublicKey(), receiver.GetPublicKey(), tokenCode, null, amount);
-                    var signableResponse = await _tokenServer.Operations.CreatePaymentAsync(sender.GetPublicKey(), receiver.GetPublicKey(), tokenCode, "", amount, "memo", "message", "ALGO");
-                    var signedResponse = sender.Sign(signableResponse);
-                    await _tokenServer.Submit.OnAlgorandAsync(signedResponse);
-                }
-                catch (System.Exception ex)
-                {
-                    _logger.LogError(ex, "Error creating payment");
-                }
-                
+                var signableResponse = await _tokenServer.Operations.CreatePaymentAsync(sender.GetPublicKey(), receiver.GetPublicKey(), tokenCode, amount, "memo", "message", "ALGO");
+                var signedResponse = sender.Sign(signableResponse, true);
+                await _tokenServer.Submit.OnAlgorandAsync(signedResponse);
             }
 
             _logger.LogWarning("Payment successful!");
@@ -216,7 +218,7 @@ namespace Nexus.Token.Algorand.Examples
             _logger.LogWarning("Payout will be execute with the following amount: {amount}!", payoutResponse.Payout.ExecutedAmounts.TokenAmount);
 
             var signableResponse = await _tokenServer.Operations.CreatePayoutAsync(kp.GetAccountCode(), tokenCode, amount);
-            var signedResponse = kp.Sign(signableResponse);
+            var signedResponse = kp.Sign(signableResponse, true);
             await _tokenServer.Submit.OnAlgorandAsync(signedResponse);
 
             _logger.LogWarning("Payout successful!");
@@ -242,7 +244,7 @@ namespace Nexus.Token.Algorand.Examples
 
         public async Task<TokenOperationResponse> UpdateOperationStatusAsync(string operationCode, string status, string? paymentReference = null)
         {
-            _logger.LogWarning("Updating operation with status: {status} and payment reference: {paymentReference}", status, paymentReference);            
+            _logger.LogWarning("Updating operation with status: {status} and payment reference: {paymentReference}", status, paymentReference);
             var tokenOperationResponse = await _tokenServer.Operations.UpdateOperationStatusAsync(operationCode, status, paymentReference: paymentReference);
 
             _logger.LogWarning("Operation update successful!");
