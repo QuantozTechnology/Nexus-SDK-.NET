@@ -195,7 +195,7 @@ namespace Nexus.Token.Stellar.Examples
             }
 
             {
-                var signableResponse = await _tokenServer.Operations.CreatePaymentAsync(sender.GetPublicKey(), receiver.GetPublicKey(), tokenCode, amount);
+                var signableResponse = await _tokenServer.Operations.CreatePaymentAsync(sender.GetPublicKey(), receiver.GetPublicKey(), tokenCode, null, amount);
                 var signedResponse = sender.Sign(signableResponse, _network);
                 await _tokenServer.Submit.OnStellarAsync(signedResponse);
             }

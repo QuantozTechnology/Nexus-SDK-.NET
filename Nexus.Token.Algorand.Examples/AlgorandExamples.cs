@@ -200,7 +200,7 @@ namespace Nexus.Token.Algorand.Examples
             }
 
             {
-                var signableResponse = await _tokenServer.Operations.CreatePaymentAsync(sender.GetPublicKey(), receiver.GetPublicKey(), tokenCode, amount, "memo", "message", "ALGO");
+                var signableResponse = await _tokenServer.Operations.CreatePaymentAsync(sender.GetPublicKey(), receiver.GetPublicKey(), tokenCode, null, amount, "memo", "message", "ALGO");
                 var signedResponse = sender.Sign(signableResponse, true);
                 await _tokenServer.Submit.OnAlgorandAsync(signedResponse);
             }
